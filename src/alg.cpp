@@ -4,102 +4,85 @@
 #include "tstack.h"
 
 std::string infx2pstfx(const std::string& inf) {
-  TStack<char, 100> operatorStack;
-  std::string postfixExpr;
+  TStack<char, 100> opStack;
+  std::string postfix;
+  std::map<char, int> priority = {{'+', 1}, {'-', 1}, {'*', 2}, {'/', 2}};
 
-  std::map<char, int> operatorPriority = {
-    {'+', 1},
-    {'-', 1},
-    {'*', 2},
-    {'/', 2}
-  };
+  for (size_t idx = 0; idx < inf.size(); ++idx) {
+    char ch = inf[idx];
 
-  for (size_t index = 0; index < inf.size(); ++index) {
-    char currentChar = inf[index];
-
-    if (currentChar >= '0' && currentChar <= '9') {
-      postfixExpr += currentChar;
-      while (index + 1 < inf.size() && inf[index + 1] >= '0' && inf[index + 1] <= '9') {
-        ++index;
-        postfixExpr += inf[index];
+    if (ch >= '0' && ch <= '9') {
+      postfix += ch;
+      while (idx + 1 < inf.size() && inf[idx + 1] >= '0' && inf[idx + 1] <= '9') {
+        ++idx;
+        postfix += inf[idx];
       }
-      postfixExpr += ' ';
-    }
-    else if (currentChar == '(') {
-      operatorStack.push(currentChar);
-    }
-    else if (currentChar == ')') {
-      while (!operatorStack.isempty() && operatorStack.get() != '(') {
-        postfixExpr += operatorStack.get();
-        postfixExpr += ' ';
-        operatorStack.pop();
+      postfix += ' ';
+    } else if (ch == '(') {
+      opStack.push(ch);
+    } else if (ch == ')') {
+      while (!opStack.isEmpty() && opStack.top() != '(') {
+        postfix += opStack.top();
+        postfix += ' ';
+        opStack.pop();
       }
-      if (!operatorStack.isempty()) {
-        operatorStack.pop();
+      if (!opStack.isEmpty()) {
+        opStack.pop();
       }
-    }
-    else if (operatorPriority.count(currentChar) != 0) {
-      while (!operatorStack.isempty() && operatorStack.get() != '(' &&
-             operatorPriority[operatorStack.get()] >= operatorPriority[currentChar]) {
-        postfixExpr += operatorStack.get();
-        postfixExpr += ' ';
-        operatorStack.pop();
+    } else if (priority.count(ch) != 0) {
+      while (!opStack.isEmpty() && opStack.top() != '(' &&
+             priority[opStack.top()] >= priority[ch]) {
+        postfix += opStack.top();
+        postfix += ' ';
+        opStack.pop();
       }
-      operatorStack.push(currentChar);
+      opStack.push(ch);
     }
   }
 
-  while (!operatorStack.isempty()) {
-    if (operatorStack.get() != '(') {
-      postfixExpr += operatorStack.get();
-      postfixExpr += ' ';
+  while (!opStack.isEmpty()) {
+    if (opStack.top() != '(') {
+      postfix += opStack.top();
+      postfix += ' ';
     }
-    operatorStack.pop();
+    opStack.pop();
   }
 
-  if (!postfixExpr.empty()) {
-    postfixExpr.pop_back();
+  if (!postfix.empty()) {
+    postfix.pop_back();
   }
-
-  return postfixExpr;
+  return postfix;
 }
 
 int eval(const std::string& pref) {
-  TStack<int, 100> operandStack;
+  TStack<int, 100> valStack;
 
   for (size_t pos = 0; pos < pref.size(); ++pos) {
     char token = pref[pos];
-
-    if (token == ' ') {
-      continue;
-    }
+    if (token == ' ') continue;
 
     if (token >= '0' && token <= '9') {
-      int number = token - '0';
-      while (pos + 1 < pref.size() && pref[pos + 1] >= '0' && pref[pos + 1] <= '9') {
+      int num = token - '0';
+      while (pos + 1 < pref.size() &&
+             pref[pos + 1] >= '0' && pref[pos + 1] <= '9') {
         ++pos;
-        number = number * 10 + (pref[pos] - '0');
+        num = num * 10 + (pref[pos] - '0');
       }
-      operandStack.push(number);
-    }
-    else {
-      int rightOperand = operandStack.get();
-      operandStack.pop();
-      int leftOperand = operandStack.get();
-      operandStack.pop();
-
-      int calculationResult = 0;
+      valStack.push(num);
+    } else {
+      int right = valStack.top();
+      valStack.pop();
+      int left = valStack.top();
+      valStack.pop();
+      int res = 0;
       switch (token) {
-        case '+': calculationResult = leftOperand + rightOperand; break;
-        case '-': calculationResult = leftOperand - rightOperand; break;
-        case '*': calculationResult = leftOperand * rightOperand; break;
-        case '/': calculationResult = leftOperand / rightOperand; break;
+        case '+': res = left + right; break;
+        case '-': res = left - right; break;
+        case '*': res = left * right; break;
+        case '/': res = left / right; break;
       }
-
-      operandStack.push(calculationResult);
+      valStack.push(res);
     }
   }
-
-  // Результат находится на вершине стека
-  return operandStack.get();
+  return valStack.top();
 }
