@@ -1,42 +1,10 @@
-// Copyright 2025 NNTU-CS
-#ifndef INCLUDE_TSTACK_H_
-#define INCLUDE_TSTACK_H_
+// Copyright 2021 NNTU-CS
+#ifndef INCLUDE_ALG_H_
+#define INCLUDE_ALG_H_
 
-template<typename T, int MaxSize>
-class TStack {
- private:
-  T arr[MaxSize];
-  int top_index;
+#include <string>
 
- public:
-  TStack() : top_index(-1) {}
+std::string infx2pstfx(std::string);
+int eval(std::string);
 
-  void push(T value) {
-    if (top_index < MaxSize - 1) {
-      arr[++top_index] = value;
-    }
-  }
-
-  void pop() {
-    if (top_index >= 0) {
-      --top_index;
-    }
-  }
-
-  T get() const {
-    if (top_index >= 0) {
-      return arr[top_index];
-    }
-    return T();
-  }
-
-  bool isempty() const {
-    return top_index == -1;
-  }
-
-  int stack_size() const {
-    return top_index + 1;
-  }
-};
-
-#endif  // INCLUDE_TSTACK_H_
+#endif  // INCLUDE_ALG_H_
