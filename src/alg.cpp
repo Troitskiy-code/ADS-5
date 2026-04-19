@@ -4,92 +4,101 @@
 #include "tstack.h"
 
 std::string infx2pstfx(const std::string& inf) {
-  TStack<char, 100> opStack;
-  std::string postfix;
+  TStack<char, 100> ops;
+  std::string out;
 
-  std::map<char, int> priority;
-  priority['+'] = 1;
-  priority['-'] = 1;
-  priority['*'] = 2;
-  priority['/'] = 2;
+  std::map<char, int> pr;
+  pr['+'] = 1;
+  pr['-'] = 1;
+  pr['*'] = 2;
+  pr['/'] = 2;
 
-  for (size_t idx = 0; idx < inf.size(); ++idx) {
-    char ch = inf[idx];
+  for (size_t i = 0; i < inf.size(); ++i) {
+    char c = inf[i];
 
-    if (ch >= '0' && ch <= '9') {
-      postfix += ch;
-      while (idx + 1 < inf.size() &&
-             inf[idx + 1] >= '0' && inf[idx + 1] <= '9') {
-        ++idx;
-        postfix += inf[idx];
+    if (c >= '0' && c <= '9') {
+      out += c;
+      while (i + 1 < inf.size() &&
+             inf[i + 1] >= '0' && inf[i + 1] <= '9') {
+        ++i;
+        out += inf[i];
       }
-      postfix += ' ';
-    } else if (ch == '(') {
-      opStack.push(ch);
-    } else if (ch == ')') {
-      while (!opStack.isempty() && opStack.get() != '(') {
-        postfix += opStack.get();
-        postfix += ' ';
-        opStack.pop();
+      out += ' ';
+    } else if (c == '(') {
+      ops.push(c);
+    } else if (c == ')') {
+      while (!ops.isempty() && ops.get() != '(') {
+        out += ops.get();
+        out += ' ';
+        ops.pop();
       }
-      if (!opStack.isempty()) {
-        opStack.pop();
+      if (!ops.isempty()) {
+        ops.pop();
       }
-    } else if (priority.count(ch) != 0) {
-      while (!opStack.isempty() && opStack.get() != '(' &&
-             priority[opStack.get()] >= priority[ch]) {
-        postfix += opStack.get();
-        postfix += ' ';
-        opStack.pop();
+    } else if (pr.count(c) != 0) {
+      while (!ops.isempty() && ops.get() != '(' &&
+             pr[ops.get()] >= pr[c]) {
+        out += ops.get();
+        out += ' ';
+        ops.pop();
       }
-      opStack.push(ch);
+      ops.push(c);
     }
   }
 
-  while (!opStack.isempty()) {
-    if (opStack.get() != '(') {
-      postfix += opStack.get();
-      postfix += ' ';
+  while (!ops.isempty()) {
+    if (ops.get() != '(') {
+      out += ops.get();
+      out += ' ';
     }
-    opStack.pop();
+    ops.pop();
   }
 
-  if (!postfix.empty()) {
-    postfix.pop_back();
+  if (!out.empty()) {
+    out.pop_back();
   }
-  return postfix;
+
+  return out;
 }
 
 int eval(const std::string& pref) {
-  TStack<int, 100> valStack;
+  TStack<int, 100> st;
 
-  for (size_t pos = 0; pos < pref.size(); ++pos) {
-    char token = pref[pos];
-    if (token == ' ') continue;
+  for (size_t i = 0; i < pref.size(); ++i) {
+    char c = pref[i];
 
-    if (token >= '0' && token <= '9') {
-      int num = token - '0';
-      while (pos + 1 < pref.size() &&
-             pref[pos + 1] >= '0' && pref[pos + 1] <= '9') {
-        ++pos;
-        num = num * 10 + (pref[pos] - '0');
+    if (c == ' ') {
+      continue;
+    }
+
+    if (c >= '0' && c <= '9') {
+      int num = c - '0';
+      while (i + 1 < pref.size() &&
+             pref[i + 1] >= '0' && pref[i + 1] <= '9') {
+        ++i;
+        num = num * 10 + (pref[i] - '0');
       }
-      valStack.push(num);
+      st.push(num);
     } else {
-      int right = valStack.get();
-      valStack.pop();
-      int left = valStack.get();
-      valStack.pop();
+      int b = st.get();
+      st.pop();
+      int a = st.get();
+      st.pop();
 
       int res = 0;
-      switch (token) {
-        case '+': res = left + right; break;
-        case '-': res = left - right; break;
-        case '*': res = left * right; break;
-        case '/': res = left / right; break;
+      if (c == '+') {
+        res = a + b;
+      } else if (c == '-') {
+        res = a - b;
+      } else if (c == '*') {
+        res = a * b;
+      } else if (c == '/') {
+        res = a / b;
       }
-      valStack.push(res);
+
+      st.push(res);
     }
   }
-  return valStack.get();
+
+  return st.get();
 }
